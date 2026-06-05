@@ -1,5 +1,9 @@
 <?php
 class PostController extends Controller {
+    private $postModel;
+    private $eventModel;
+    private $notifModel;
+
     public function __construct() {
         parent::__construct();
         $this->postModel = $this->model('Post');
@@ -10,7 +14,8 @@ class PostController extends Controller {
     public function index() {
         $event_id = $_GET['event_id'] ?? null;
         $user_id = $_SESSION['user_id'] ?? null;
-        $posts = $this->postModel->getPopularPosts($event_id, $user_id);
+        $q = $_GET['q'] ?? null;
+        $posts = $this->postModel->getPopularPosts($event_id, $user_id, $q);
         $events = $this->eventModel->getAllEvents();
         $active_events = $this->eventModel->getActiveAndUpcomingEvents();
         $notifs = isset($_SESSION['user_id']) ? $this->notifModel->getNotifications($_SESSION['user_id']) : [];
@@ -21,7 +26,8 @@ class PostController extends Controller {
     public function latest() {
         $event_id = $_GET['event_id'] ?? null;
         $user_id = $_SESSION['user_id'] ?? null;
-        $posts = $this->postModel->getNewestPosts($event_id, $user_id);
+        $q = $_GET['q'] ?? null;
+        $posts = $this->postModel->getNewestPosts($event_id, $user_id, $q);
         $events = $this->eventModel->getAllEvents();
         $active_events = $this->eventModel->getActiveAndUpcomingEvents();
         $notifs = isset($_SESSION['user_id']) ? $this->notifModel->getNotifications($_SESSION['user_id']) : [];

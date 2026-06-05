@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>V.O.I.C.E - Sign Up</title>
+<!-- Tailwind CSS v3 CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'voice-dark': '#1a1d21',
+            'voice-green': '#4ade80',
+            'voice-green-dark': '#22c55e',
+            'voice-card': '#2d333b',
+          },
+          boxShadow: {
+            'glow': '0 0 20px 2px rgba(74, 222, 128, 0.3)',
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for UI Polish -->
+<style data-purpose="custom-layout">
+    body {
+      background-color: #121417; /* Dark background as seen in the screenshot */
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    }
+    .input-underline {
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid #4b5563;
+      transition: border-color 0.3s ease;
+    }
+    .input-underline:focus {
+      outline: none;
+      border-bottom-color: #4ade80;
+      box-shadow: none;
+    }
+    /* Hide the default checkbox but style the custom one */
+    .custom-checkbox:checked {
+      background-color: #4ade80;
+      border-color: #4ade80;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+<!-- BEGIN: SignupCard -->
+<main class="w-full max-w-md bg-voice-card border border-voice-green/30 rounded-2xl p-8 md:p-10 shadow-glow" data-purpose="signup-card" id="signup-container">
+<!-- BEGIN: LogoHeader -->
+<header class="text-center mb-8">
+<div class="flex justify-center mb-6">
+<h1 class="text-5xl font-black tracking-tighter text-voice-green italic">V.O.I.C.E</h1>
+</div>
+<h2 class="text-2xl font-semibold text-white">Create an Account</h2>
+</header>
+<!-- END: LogoHeader -->
+<!-- BEGIN: SignupForm -->
+<form action="#" class="space-y-6" method="POST">
+<!-- Email Field -->
+<div class="relative">
+<input class="w-full py-2 px-0 input-underline text-white placeholder-gray-500 bg-transparent" id="email" name="email" placeholder="Email" required="" type="email"/>
+</div>
+<!-- Username Field -->
+<div class="relative">
+<input class="w-full py-2 px-0 input-underline text-white placeholder-gray-500 bg-transparent" id="username" name="username" placeholder="Username" required="" type="text"/>
+</div>
+<!-- Password Field -->
+<div class="relative">
+<input class="w-full py-2 px-0 input-underline text-white placeholder-gray-500 bg-transparent" id="password" name="password" placeholder="Password" required="" type="password"/>
+</div>
+<!-- Confirm Password Field -->
+<div class="relative">
+<input class="w-full py-2 px-0 input-underline text-white placeholder-gray-500 bg-transparent" id="confirm_password" name="confirm_password" placeholder="Confirm Password" required="" type="password"/>
+</div>
+<!-- Terms of Service Checkbox -->
+<div class="flex items-center space-x-3 mt-4">
+<input class="custom-checkbox h-5 w-5 rounded border-gray-600 bg-transparent text-voice-green focus:ring-voice-green" id="terms" name="terms" required="" type="checkbox"/>
+<label class="text-sm text-gray-400" for="terms">
+          I agree to the <a class="text-voice-green hover:underline" href="#">Terms of Service</a>
+</label>
+</div>
+<!-- Submit Button -->
+<div class="pt-4">
+<button class="w-full bg-voice-green hover:bg-voice-green-dark text-voice-dark font-bold py-3 px-4 rounded-full transition-colors duration-200 text-lg shadow-lg" type="submit">
+          Create Account
+        </button>
+</div>
+</form>
+<!-- END: SignupForm -->
+<!-- BEGIN: SocialSignupSection -->
+<section class="mt-8 text-center" data-purpose="social-auth">
+<p class="text-gray-400 text-sm mb-6">Or sign up with</p>
+<div class="flex justify-center space-x-6 mb-8">
+<!-- Google Placeholder -->
+<a aria-label="Sign up with Google" class="w-12 h-12 flex items-center justify-center rounded-full border border-gray-600 text-voice-green hover:border-voice-green transition-colors" href="#">
+<svg class="w-6 h-6" fill="currentColor" viewbox="0 0 24 24"><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.908 3.162-1.908 4.162-1.228 1.228-3.14 2.56-6.412 2.56-5.116 0-9.28-4.134-9.28-9.25s4.164-9.25 9.28-9.25c2.78 0 4.88 1.09 6.32 2.44l2.32-2.32C18.6 1.05 15.82 0 12.48 0 5.61 0 0 5.61 0 12.5S5.61 25 12.48 25c3.71 0 6.51-1.21 8.71-3.5 2.27-2.27 3-5.51 3-8.1 0-.78-.06-1.54-.18-2.26h-11.53z"></path></svg>
+</a>
+<!-- Facebook Placeholder -->
+<a aria-label="Sign up with Facebook" class="w-12 h-12 flex items-center justify-center rounded-full border border-gray-600 text-voice-green hover:border-voice-green transition-colors" href="#">
+<svg class="w-6 h-6" fill="currentColor" viewbox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3l-.5 3H13v6.8c4.56-.93 8-4.96 8-9.8z"></path></svg>
+</a>
+<!-- Twitter Placeholder -->
+<a aria-label="Sign up with Twitter" class="w-12 h-12 flex items-center justify-center rounded-full border border-gray-600 text-voice-green hover:border-voice-green transition-colors" href="#">
+<svg class="w-6 h-6" fill="currentColor" viewbox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"></path></svg>
+</a>
+</div>
+<p class="text-gray-400 text-sm">
+        Already have an account? <a class="text-voice-green hover:underline font-semibold" href="#">Log In</a>
+</p>
+</section>
+<!-- END: SocialSignupSection -->
+</main>
+<!-- END: SignupCard -->
+</body></html>

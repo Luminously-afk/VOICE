@@ -1,5 +1,8 @@
 <?php
 class EventController extends Controller {
+    private $eventModel;
+    private $notifModel;
+
     public function __construct() {
         $this->eventModel = $this->model('Event');
         $this->notifModel = $this->model('Notification');

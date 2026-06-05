@@ -1,5 +1,10 @@
 <?php
 class AdminController extends Controller {
+    private $postModel;
+    private $userModel;
+    private $eventModel;
+    private $notifModel;
+
     public function __construct() {
         $this->postModel = $this->model('Post');
         $this->userModel = $this->model('User');

@@ -2,7 +2,7 @@
   Options -Multiviews
   RewriteEngine On
   # DAPAT TUGMA ITO SA FOLDER NAME MO SA HTDOCS
-  RewriteBase /V.O.I.C.E/public/
+  RewriteBase /VOICE/public/
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteRule ^(.+)$ index.php?url=$1 [QSA,L]

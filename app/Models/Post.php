@@ -1,6 +1,6 @@
 <?php
 class Post extends Model {
-    public function getNewsfeed($event_id = null, $user_id = null) {
+    public function getNewsfeed($event_id = null, $user_id = null, $q = null) {
         $sql = "SELECT p.*, p.upvotes AS upvotes_count, p.downvotes AS downvotes_count, u.name as student_name, e.title as event_title";
         if (!empty($user_id)) {
             $sql .= ", (SELECT vote FROM votes WHERE post_id = p.post_id AND user_id = :user_id LIMIT 1) AS user_vote";
@@ -10,19 +10,21 @@ class Post extends Model {
         $sql .= " FROM posts p LEFT JOIN users u ON p.user_id = u.user_id LEFT JOIN events e ON p.event_id = e.event_id WHERE LOWER(p.status) IN ('approved', 'published')";
         
         if (!empty($event_id)) { $sql .= " AND p.event_id = :event_id"; }
+        if (!empty($q)) { $sql .= " AND (p.title LIKE :q OR p.insight LIKE :q)"; }
         $sql .= " ORDER BY (p.upvotes - p.downvotes) DESC, p.created_at DESC";
         
         $this->db->query($sql);
         if (!empty($user_id)) { $this->db->bind(':user_id', $user_id); }
         if (!empty($event_id)) { $this->db->bind(':event_id', $event_id); }
+        if (!empty($q)) { $this->db->bind(':q', '%' . $q . '%'); }
         return $this->db->resultSet();
     }
 
-    public function getPopularPosts($event_id = null, $user_id = null) { 
-        return $this->getNewsfeed($event_id, $user_id); 
+    public function getPopularPosts($event_id = null, $user_id = null, $q = null) { 
+        return $this->getNewsfeed($event_id, $user_id, $q); 
     }
 
-    public function getNewestPosts($event_id = null, $user_id = null) {
+    public function getNewestPosts($event_id = null, $user_id = null, $q = null) {
         $sql = "SELECT p.*, p.upvotes AS upvotes_count, p.downvotes AS downvotes_count, u.name as student_name, e.title as event_title";
         if (!empty($user_id)) {
             $sql .= ", (SELECT vote FROM votes WHERE post_id = p.post_id AND user_id = :user_id LIMIT 1) AS user_vote";
@@ -32,11 +34,13 @@ class Post extends Model {
         $sql .= " FROM posts p LEFT JOIN users u ON p.user_id = u.user_id LEFT JOIN events e ON p.event_id = e.event_id WHERE LOWER(p.status) IN ('approved', 'published')";
         
         if (!empty($event_id)) { $sql .= " AND p.event_id = :event_id"; }
+        if (!empty($q)) { $sql .= " AND (p.title LIKE :q OR p.insight LIKE :q)"; }
         $sql .= " ORDER BY p.created_at DESC";
         
         $this->db->query($sql);
         if (!empty($user_id)) { $this->db->bind(':user_id', $user_id); }
         if (!empty($event_id)) { $this->db->bind(':event_id', $event_id); }
+        if (!empty($q)) { $this->db->bind(':q', '%' . $q . '%'); }
         return $this->db->resultSet();
     }
 

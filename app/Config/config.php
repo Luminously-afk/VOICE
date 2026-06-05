@@ -7,7 +7,7 @@ define('DB_NAME', 'db_voice_system');
 
 define('APPROOT', dirname(dirname(__FILE__)));
 
-define('URLROOT', 'http://localhost/V.O.I.C.E');
+define('URLROOT', 'http://localhost/VOICE');
 
 define('SITENAME', 'V.O.I.C.E. - Olivarez College');
 define('OC_GREEN', '#006400');
