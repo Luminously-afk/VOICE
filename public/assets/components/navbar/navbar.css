@@ -1,0 +1,12 @@
+.navbar {
+    border-bottom: 3px solid #FFD700; /* Gold accent para sa Olivarez colors */
+}
+
+.nav-link {
+    transition: 0.3s;
+}
+
+.nav-link:hover {
+    color: #FFD700 !important;
+    transform: translateY(-2px);
+}

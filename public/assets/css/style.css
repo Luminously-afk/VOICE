@@ -1,0 +1,19 @@
+/* X-Style Overrides */
+.nav-link:hover {
+    background-color: #f1f1f1;
+}
+
+.sticky-top {
+    z-index: 1000;
+}
+
+/* Olivarez Theme Touch */
+.active-tab {
+    color: var(--oc-green) !important;
+}
+
+/* Sidebar Hover */
+.list-group-item-action:hover {
+    background-color: var(--oc-light-green);
+    color: var(--oc-green);
+}

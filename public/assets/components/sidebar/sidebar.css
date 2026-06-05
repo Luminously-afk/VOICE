@@ -1,0 +1,35 @@
+/* public/assets/components/sidebar/sidebar.css */
+
+.sidebar-card {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: #333;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.sidebar-link:hover {
+    background-color: #e8f5e9; /* Light Olivarez Green */
+    color: #006400;
+    border-left: 4px solid #006400;
+}
+
+.sidebar-link.active {
+    background-color: #f1f8e9;
+    color: #006400;
+    font-weight: bold;
+    border-left: 4px solid #006400;
+}
+
+.sidebar-icon {
+    width: 20px;
+    margin-right: 10px;
+    text-align: center;
+}
