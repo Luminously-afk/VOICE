@@ -1,5 +1,5 @@
 <nav class="sticky top-0 z-40 bg-[#2d333b] border-b border-voice-border">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
             <!-- Logo -->
             <div class="flex-shrink-0 flex items-center">

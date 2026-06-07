@@ -26,7 +26,7 @@
                         <span class="badge bg-success rounded-pill px-3 py-2"><?= htmlspecialchars($data['event']->category) ?></span>
                         <span class="badge bg-secondary rounded-pill px-3 py-2"><?= htmlspecialchars($data['event']->status) ?></span>
                     </div>
-                    <p class="text-muted mb-0"><?= nl2br(htmlspecialchars(html_entity_decode($data['event']->description ?? '', ENT_QUOTES), ENT_QUOTES)) ?></p>
+                    <div class="text-muted mb-0"><?= html_entity_decode($data['event']->description ?? '', ENT_QUOTES) ?></div>
                 </div>
             </div>
 

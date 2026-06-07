@@ -68,6 +68,21 @@ class Post extends Model {
         return $this->db->single();
     }
 
+    public function getPostDetailsById($id, $user_id = null) {
+        $sql = "SELECT p.*, p.upvotes AS upvotes_count, p.downvotes AS downvotes_count, u.name as student_name, e.title as event_title";
+        if (!empty($user_id)) {
+            $sql .= ", (SELECT vote FROM votes WHERE post_id = p.post_id AND user_id = :user_id LIMIT 1) AS user_vote";
+        } else {
+            $sql .= ", NULL AS user_vote";
+        }
+        $sql .= " FROM posts p LEFT JOIN users u ON p.user_id = u.user_id LEFT JOIN events e ON p.event_id = e.event_id WHERE p.post_id = :post_id";
+        
+        $this->db->query($sql);
+        $this->db->bind(':post_id', $id);
+        if (!empty($user_id)) { $this->db->bind(':user_id', $user_id); }
+        return $this->db->single();
+    }
+
     public function updatePost($data) {
         $this->db->query("UPDATE posts SET title = :title, insight = :insight, event_id = :event_id, is_anonymous = :is_anonymous, status = 'Pending' WHERE post_id = :post_id AND user_id = :user_id");
         $this->db->bind(':title', $data['title']);

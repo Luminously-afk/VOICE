@@ -2,7 +2,7 @@
 <?php require_once '../app/Views/components/navbar.php'; ?>
 <?php $isLoggedIn = isset($_SESSION['user_id']); ?>
 
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 w-full flex-grow">
     <!-- Profile Header -->
     <div class="text-center mb-10">
         <div class="inline-block bg-voice-green text-voice-dark rounded-full p-6 mb-4 shadow-glow">
@@ -62,21 +62,44 @@
                     <span class="text-xs text-gray-500 font-medium"><?= date('M j, Y', strtotime($p->created_at)) ?></span>
                 </div>
                 
-                <h3 class="text-xl font-bold text-gray-100 mb-3"><?= htmlspecialchars(html_entity_decode($p->title ?? 'Untitled Insight', ENT_QUOTES), ENT_QUOTES) ?></h3>
+                <a href="<?= URLROOT ?>/post/viewInsight/<?= $p->post_id ?>" class="text-xl font-bold text-gray-100 mb-3 hover:text-voice-green transition-colors block">
+                    <?= htmlspecialchars(html_entity_decode($p->title ?? 'Untitled Insight', ENT_QUOTES), ENT_QUOTES) ?>
+                </a>
                 
                 <?php if(!empty($p->insight)): ?>
-                    <p class="text-gray-300 text-sm leading-relaxed mb-4"><?= nl2br(htmlspecialchars(html_entity_decode($p->insight, ENT_QUOTES), ENT_QUOTES)) ?></p>
+                    <div class="text-gray-300 text-sm leading-relaxed mb-4 prose-voice line-clamp-3">
+                        <?php 
+                            $insightHtml = html_entity_decode($p->insight, ENT_QUOTES);
+                            $insightHtml = preg_replace('/src="(\.\.\/)+uploads\//', 'src="' . URLROOT . '/uploads/', $insightHtml);
+                            echo $insightHtml;
+                        ?>
+                    </div>
                 <?php endif; ?>
 
                 <div class="flex items-center justify-between border-t border-voice-border pt-4">
-                    <div class="flex items-center bg-[#1a1d21] rounded-full px-3 py-1.5 border border-voice-border">
-                        <button type="button" id="up-btn-<?= $p->post_id ?>" class="transition-colors <?= $upClass ?>" onclick="handleVoteClick(event, <?= $p->post_id ?>, 'up', <?= $isLoggedIn ? 'true' : 'false' ?>)">
-                            <i class="fas fa-arrow-up"></i>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <!-- Upvotes -->
+                        <button type="button" id="up-btn-<?= $p->post_id ?>" class="flex items-center bg-[#1a1d21] rounded-full px-3 py-1.5 border border-voice-border transition-colors <?= $upClass ?>" onclick="handleVoteClick(event, <?= $p->post_id ?>, 'up', <?= $isLoggedIn ? 'true' : 'false' ?>)">
+                            <i class="fas fa-arrow-up mr-2"></i>
+                            <span id="up-count-<?= $p->post_id ?>" class="text-sm font-bold"><?= $p->upvotes_count ?? 0 ?></span>
                         </button>
-                        <span class="mx-3 text-sm font-bold text-gray-300 w-4 text-center" id="score-<?= $p->post_id ?>"><?= $p->vote_score ?? 0 ?></span>
-                        <button type="button" id="down-btn-<?= $p->post_id ?>" class="transition-colors <?= $downClass ?>" onclick="handleVoteClick(event, <?= $p->post_id ?>, 'down', <?= $isLoggedIn ? 'true' : 'false' ?>)">
+                        
+                        <!-- Score -->
+                        <div class="flex items-center bg-[#1a1d21] rounded-full px-4 py-1.5 border border-voice-border">
+                            <span class="text-[10px] text-gray-500 mr-2 uppercase tracking-widest font-bold">Score</span>
+                            <span class="text-sm font-bold <?= ($p->vote_score ?? 0) > 0 ? 'text-voice-green' : (($p->vote_score ?? 0) < 0 ? 'text-red-400' : 'text-gray-300') ?>" id="score-<?= $p->post_id ?>"><?= $p->vote_score ?? 0 ?></span>
+                        </div>
+
+                        <!-- Downvotes -->
+                        <button type="button" id="down-btn-<?= $p->post_id ?>" class="flex items-center bg-[#1a1d21] rounded-full px-3 py-1.5 border border-voice-border transition-colors <?= $downClass ?>" onclick="handleVoteClick(event, <?= $p->post_id ?>, 'down', <?= $isLoggedIn ? 'true' : 'false' ?>)">
+                            <span id="down-count-<?= $p->post_id ?>" class="text-sm font-bold mr-2"><?= $p->downvotes_count ?? 0 ?></span>
                             <i class="fas fa-arrow-down"></i>
                         </button>
+
+                        <!-- Discuss Button -->
+                        <a href="<?= URLROOT ?>/post/viewInsight/<?= $p->post_id ?>#comments" class="flex items-center text-gray-500 hover:text-voice-green bg-[#1a1d21] rounded-full px-4 py-1.5 border border-voice-border transition-colors text-sm font-bold ml-2">
+                            <i class="fas fa-comment-alt mr-2"></i> Discuss
+                        </a>
                     </div>
                     
                     <?php if ($data['active_tab'] === 'posts'): ?>
@@ -106,15 +129,26 @@
         .then(response => response.json())
         .then(data => {
             if(data.success) {
-                document.getElementById('score-' + postId).innerText = data.score;
+                let scoreEl = document.getElementById('score-' + postId);
+                scoreEl.innerText = data.score;
                 
-                upBtn.className = "transition-colors text-gray-500 hover:text-voice-green";
-                downBtn.className = "transition-colors text-gray-500 hover:text-red-400";
+                // Update score color
+                scoreEl.className = "text-sm font-bold " + (data.score > 0 ? "text-voice-green" : (data.score < 0 ? "text-red-400" : "text-gray-300"));
+
+                // Update counts
+                let upCountEl = document.getElementById('up-count-' + postId);
+                if (upCountEl) upCountEl.innerText = data.upvotes;
+                let downCountEl = document.getElementById('down-count-' + postId);
+                if (downCountEl) downCountEl.innerText = data.downvotes;
+                
+                let baseBtnClass = "flex items-center bg-[#1a1d21] rounded-full px-3 py-1.5 border border-voice-border transition-colors ";
+                upBtn.className = baseBtnClass + "text-gray-500 hover:text-voice-green";
+                downBtn.className = baseBtnClass + "text-gray-500 hover:text-red-400";
                 
                 if (data.user_vote === 'up') {
-                    upBtn.className = "transition-colors text-voice-green";
+                    upBtn.className = baseBtnClass + "text-voice-green";
                 } else if (data.user_vote === 'down') {
-                    downBtn.className = "transition-colors text-red-400";
+                    downBtn.className = baseBtnClass + "text-red-400";
                 }
             } else if (data.redirect) { window.location.href = '<?= URLROOT ?>/auth/login'; }
         })

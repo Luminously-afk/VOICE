@@ -1,6 +1,6 @@
 <?php require_once '../app/Views/layout/header.php'; ?>
 
-<main class="w-full max-w-md bg-voice-card border border-voice-green/30 rounded-2xl p-10 shadow-glow mx-auto mt-10 md:mt-20">
+<main class="w-full max-w-md bg-voice-card border border-voice-green/30 rounded-2xl p-10 shadow-glow mx-auto mt-10 md:mt-20 mb-auto">
     <header class="text-center mb-10">
         <div class="flex items-center justify-center gap-2 mb-2">
             <h1 class="text-4xl font-bold tracking-widest text-voice-green">V.O.I.C.E</h1>

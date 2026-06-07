@@ -3,12 +3,14 @@ class PostController extends Controller {
     private $postModel;
     private $eventModel;
     private $notifModel;
+    private $commentModel;
 
     public function __construct() {
         parent::__construct();
         $this->postModel = $this->model('Post');
         $this->eventModel = $this->model('Event');
         $this->notifModel = $this->model('Notification');
+        $this->commentModel = $this->model('Comment');
     }
 
     public function index() {
@@ -71,6 +73,7 @@ class PostController extends Controller {
     public function updatePost($id) {
         if (!isset($_SESSION['user_id'])) { header('Location: ' . URLROOT . '/auth/login'); exit(); }
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $raw_insight = $_POST['insight'] ?? '';
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
             
             $post = $this->postModel->getPostById($id);
@@ -91,7 +94,7 @@ class PostController extends Controller {
                 'user_id' => $_SESSION['user_id'],
                 'event_id' => $event_id,
                 'title' => trim($_POST['title']),
-                'insight' => trim($_POST['insight']),
+                'insight' => trim($raw_insight),
                 'is_anonymous' => $is_anonymous
             ];
             
@@ -160,6 +163,7 @@ class PostController extends Controller {
     public function store() {
         if (!isset($_SESSION['user_id'])) { header('Location: ' . URLROOT . '/auth/login'); exit(); }
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $raw_insight = $_POST['insight'] ?? '';
             $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
             
             $event_id = trim($_POST['event_id']);
@@ -173,7 +177,7 @@ class PostController extends Controller {
                 'user_id' => $_SESSION['user_id'], 
                 'event_id' => $event_id, 
                 'title' => trim($_POST['title']),
-                'insight' => trim($_POST['insight']),
+                'insight' => trim($raw_insight),
                 'is_anonymous' => $is_anonymous
             ];
             if ($this->postModel->addPost($data)) {
@@ -321,6 +325,75 @@ class PostController extends Controller {
         $this->notifModel->clearAllNotifications($_SESSION['user_id']);
         $redirect = $_SERVER['HTTP_REFERER'] ?? URLROOT . '/post/index';
         header('Location: ' . $redirect);
+        exit();
+    }
+
+    public function uploadImage() {
+        if (!isset($_SESSION['user_id'])) { header('HTTP/1.1 403 Forbidden'); exit(); }
+        if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['file'])) {
+            $file = $_FILES['file'];
+            if ($file['error'] === UPLOAD_ERR_OK) {
+                $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                if (in_array(strtolower($ext), $allowed)) {
+                    $filename = uniqid('ins_') . '.' . $ext;
+                    $dest = dirname(dirname(dirname(__FILE__))) . '/public/uploads/insights/' . $filename;
+                    if (move_uploaded_file($file['tmp_name'], $dest)) {
+                        header('Content-Type: application/json');
+                        echo json_encode(['location' => URLROOT . '/uploads/insights/' . $filename]);
+                        exit();
+                    }
+                }
+            }
+        }
+        header('HTTP/1.1 500 Server Error');
+        exit();
+    }
+
+    public function viewEvent($id) {
+        $event = $this->eventModel->getEventById($id);
+        if (!$event) {
+            header('Location: ' . URLROOT . '/post/index');
+            exit();
+        }
+        $notifs = isset($_SESSION['user_id']) ? $this->notifModel->getNotifications($_SESSION['user_id']) : [];
+        $this->view('posts/view_event', ['event' => $event, 'notifications' => $notifs]);
+    }
+
+    public function viewInsight($id) {
+        $user_id = $_SESSION['user_id'] ?? null;
+        $post = $this->postModel->getPostDetailsById($id, $user_id);
+        
+        if (!$post) {
+            header('Location: ' . URLROOT . '/post/index');
+            exit();
+        }
+
+        $comments = $this->commentModel->getCommentsByPostId($id);
+        $notifs = isset($_SESSION['user_id']) ? $this->notifModel->getNotifications($_SESSION['user_id']) : [];
+        
+        $this->view('posts/view_insight', [
+            'post' => $post,
+            'comments' => $comments,
+            'notifications' => $notifs
+        ]);
+    }
+
+    public function addComment($post_id) {
+        if (!isset($_SESSION['user_id'])) { header('Location: ' . URLROOT . '/auth/login'); exit(); }
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            $data = [
+                'post_id' => $post_id,
+                'user_id' => $_SESSION['user_id'],
+                'content' => trim($_POST['content'])
+            ];
+            if (!empty($data['content'])) {
+                $this->commentModel->addComment($data);
+                Flash::set('post_message', 'Comment added successfully.');
+            }
+        }
+        header('Location: ' . URLROOT . '/post/viewInsight/' . $post_id);
         exit();
     }
 }

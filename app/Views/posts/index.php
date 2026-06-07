@@ -2,7 +2,7 @@
 <?php require_once '../app/Views/components/navbar.php'; ?>
 <?php $isLoggedIn = isset($_SESSION['user_id']); ?>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-6 w-full flex-grow">
     <div class="flex flex-col md:flex-row gap-6">
         
         <!-- Left Sidebar -->
@@ -71,21 +71,44 @@
                             </span>
                         </div>
                         
-                        <h3 class="text-xl font-bold text-gray-100 mb-3"><?= htmlspecialchars(html_entity_decode($p->title ?? 'Untitled Insight', ENT_QUOTES), ENT_QUOTES) ?></h3>
+                        <a href="<?= URLROOT ?>/post/viewInsight/<?= $p->post_id ?>" class="text-xl font-bold text-gray-100 mb-3 hover:text-voice-green transition-colors block">
+                            <?= htmlspecialchars(html_entity_decode($p->title ?? 'Untitled Insight', ENT_QUOTES), ENT_QUOTES) ?>
+                        </a>
                         
                         <?php if(!empty($p->insight)): ?>
-                            <p class="text-gray-300 text-sm leading-relaxed mb-4"><?= nl2br(htmlspecialchars(html_entity_decode($p->insight, ENT_QUOTES), ENT_QUOTES)) ?></p>
+                            <div class="text-gray-300 text-sm leading-relaxed mb-4 prose-voice line-clamp-3">
+                                <?php 
+                                    $insightHtml = html_entity_decode($p->insight, ENT_QUOTES);
+                                    $insightHtml = preg_replace('/src="(\.\.\/)+uploads\//', 'src="' . URLROOT . '/uploads/', $insightHtml);
+                                    echo $insightHtml;
+                                ?>
+                            </div>
                         <?php endif; ?>
 
-                        <div class="flex items-center gap-4 border-t border-voice-border pt-4">
-                            <div class="flex items-center bg-[#1a1d21] rounded-full px-3 py-1.5 border border-voice-border">
-                                <button type="button" id="up-btn-<?= $p->post_id ?>" class="transition-colors <?= $upClass ?>" onclick="handleVoteClick(event, <?= $p->post_id ?>, 'up', <?= $isLoggedIn ? 'true' : 'false' ?>)">
-                                    <i class="fas fa-arrow-up"></i>
+                        <div class="flex items-center justify-between border-t border-voice-border pt-4">
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <!-- Upvotes -->
+                                <button type="button" id="up-btn-<?= $p->post_id ?>" class="flex items-center bg-[#1a1d21] rounded-full px-3 py-1.5 border border-voice-border transition-colors <?= $upClass ?>" onclick="handleVoteClick(event, <?= $p->post_id ?>, 'up', <?= $isLoggedIn ? 'true' : 'false' ?>)">
+                                    <i class="fas fa-arrow-up mr-2"></i>
+                                    <span id="up-count-<?= $p->post_id ?>" class="text-sm font-bold"><?= $p->upvotes_count ?? 0 ?></span>
                                 </button>
-                                <span class="mx-3 text-sm font-bold text-gray-300 w-4 text-center" id="score-<?= $p->post_id ?>"><?= $p->vote_score ?? 0 ?></span>
-                                <button type="button" id="down-btn-<?= $p->post_id ?>" class="transition-colors <?= $downClass ?>" onclick="handleVoteClick(event, <?= $p->post_id ?>, 'down', <?= $isLoggedIn ? 'true' : 'false' ?>)">
+                                
+                                <!-- Score -->
+                                <div class="flex items-center bg-[#1a1d21] rounded-full px-4 py-1.5 border border-voice-border">
+                                    <span class="text-[10px] text-gray-500 mr-2 uppercase tracking-widest font-bold">Score</span>
+                                    <span class="text-sm font-bold <?= ($p->vote_score ?? 0) > 0 ? 'text-voice-green' : (($p->vote_score ?? 0) < 0 ? 'text-red-400' : 'text-gray-300') ?>" id="score-<?= $p->post_id ?>"><?= $p->vote_score ?? 0 ?></span>
+                                </div>
+
+                                <!-- Downvotes -->
+                                <button type="button" id="down-btn-<?= $p->post_id ?>" class="flex items-center bg-[#1a1d21] rounded-full px-3 py-1.5 border border-voice-border transition-colors <?= $downClass ?>" onclick="handleVoteClick(event, <?= $p->post_id ?>, 'down', <?= $isLoggedIn ? 'true' : 'false' ?>)">
+                                    <span id="down-count-<?= $p->post_id ?>" class="text-sm font-bold mr-2"><?= $p->downvotes_count ?? 0 ?></span>
                                     <i class="fas fa-arrow-down"></i>
                                 </button>
+                                
+                                <!-- Discuss Button -->
+                                <a href="<?= URLROOT ?>/post/viewInsight/<?= $p->post_id ?>#comments" class="flex items-center text-gray-500 hover:text-voice-green bg-[#1a1d21] rounded-full px-4 py-1.5 border border-voice-border transition-colors text-sm font-bold ml-2">
+                                    <i class="fas fa-comment-alt mr-2"></i> Discuss
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -100,7 +123,7 @@
                     <i class="far fa-calendar-alt text-voice-green"></i> Active Events
                 </h5>
                 <?php if(!empty($data['upcoming_events'])): foreach($data['upcoming_events'] as $ue): ?>
-                    <div class="mb-4 last:mb-0">
+                    <a href="<?= URLROOT ?>/post/viewEvent/<?= $ue->event_id ?>" class="block mb-4 last:mb-0 hover:bg-[#30363d] p-3 -mx-3 rounded-lg transition-colors border border-transparent hover:border-voice-border">
                         <div class="flex items-center justify-between mb-1">
                             <small class="text-voice-green font-bold text-xs">
                                 <?= date('M j, Y', strtotime($ue->event_date)) ?>
@@ -111,9 +134,9 @@
                             <?= htmlspecialchars(html_entity_decode($ue->title, ENT_QUOTES), ENT_QUOTES) ?>
                         </h6>
                         <p class="text-gray-500 text-xs line-clamp-2">
-                            <?= htmlspecialchars(html_entity_decode($ue->description ?? '', ENT_QUOTES), ENT_QUOTES) ?>
+                            <?= htmlspecialchars(strip_tags(html_entity_decode($ue->description ?? '', ENT_QUOTES)), ENT_QUOTES) ?>
                         </p>
-                    </div>
+                    </a>
                 <?php endforeach; else: ?>
                     <p class="text-gray-500 text-sm italic">No active or upcoming events.</p>
                 <?php endif; ?>
@@ -169,13 +192,8 @@
                     </section>
                     
                     <!-- Rich Text Area -->
-                    <section class="border border-[#444c56] rounded-md overflow-hidden bg-[#22272e] focus-within:ring-1 focus-within:ring-[#2ecc71] focus-within:border-[#2ecc71] transition-all" data-purpose="rich-text-editor">
-                        <div class="flex items-center space-x-4 px-4 py-2 bg-[#2d333b] border-b border-[#444c56]">
-                            <button class="text-gray-400 hover:text-white" title="Bold" type="button"><strong>B</strong></button>
-                            <button class="text-gray-400 hover:text-white" title="Italic" type="button"><em>I</em></button>
-                            <button class="text-gray-400 hover:text-white" title="Underline" type="button"><u>U</u></button>
-                        </div>
-                        <textarea name="insight" class="w-full bg-transparent border-none text-white p-4 h-40 resize-none focus:ring-0 placeholder:text-gray-500" placeholder="Share your thoughts, experiences, or observations here..." required></textarea>
+                    <section class="rounded-md overflow-hidden bg-[#22272e] transition-all" data-purpose="rich-text-editor">
+                        <textarea name="insight" id="insight-editor" class="w-full bg-transparent border-none text-white p-4 h-40 resize-none focus:ring-0 placeholder:text-gray-500" placeholder="Share your thoughts, experiences, or observations here..." required></textarea>
                     </section>
                     
                     <!-- Footer Actions -->
@@ -232,15 +250,26 @@
         .then(response => response.json())
         .then(data => {
             if(data.success) {
-                document.getElementById('score-' + postId).innerText = data.score;
+                let scoreEl = document.getElementById('score-' + postId);
+                scoreEl.innerText = data.score;
                 
-                upBtn.className = "transition-colors text-gray-500 hover:text-voice-green";
-                downBtn.className = "transition-colors text-gray-500 hover:text-red-400";
+                // Update score color
+                scoreEl.className = "text-sm font-bold " + (data.score > 0 ? "text-voice-green" : (data.score < 0 ? "text-red-400" : "text-gray-300"));
+
+                // Update counts
+                let upCountEl = document.getElementById('up-count-' + postId);
+                if (upCountEl) upCountEl.innerText = data.upvotes;
+                let downCountEl = document.getElementById('down-count-' + postId);
+                if (downCountEl) downCountEl.innerText = data.downvotes;
+                
+                let baseBtnClass = "flex items-center bg-[#1a1d21] rounded-full px-3 py-1.5 border border-voice-border transition-colors ";
+                upBtn.className = baseBtnClass + "text-gray-500 hover:text-voice-green";
+                downBtn.className = baseBtnClass + "text-gray-500 hover:text-red-400";
                 
                 if (data.user_vote === 'up') {
-                    upBtn.className = "transition-colors text-voice-green";
+                    upBtn.className = baseBtnClass + "text-voice-green";
                 } else if (data.user_vote === 'down') {
-                    downBtn.className = "transition-colors text-red-400";
+                    downBtn.className = baseBtnClass + "text-red-400";
                 }
             } else if (data.redirect) {
                 window.location.href = '<?= URLROOT ?>/auth/login';
@@ -253,5 +282,44 @@
         });
     }
 </script>
+
+<!-- TinyMCE CDN -->
+<script src="https://cdn.tiny.cloud/1/4xmrj221v5x6p30au2gcy38qbtlc0it14p5j717h6degeyly/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    tinymce.init({
+        selector: '#insight-editor',
+        plugins: 'advlist autolink lists link image preview media table',
+        toolbar: 'undo redo | bold italic underline | bullist numlist | link image media',
+        height: 300,
+        skin: 'oxide-dark',
+        content_css: 'dark',
+        images_upload_url: '<?= URLROOT ?>/post/uploadImage',
+        automatic_uploads: true,
+        file_picker_types: 'image',
+        images_reuse_filename: true,
+        document_base_url: '<?= URLROOT ?>/',
+        relative_urls: false,
+        remove_script_host: true,
+        menubar: false,
+        statusbar: false,
+        setup: function (editor) {
+            editor.on('change', function () {
+                editor.save(); // ensure textarea gets updated for required validation
+            });
+        }
+    });
+</script>
+<style>
+/* Basic styling for rich text rendering in feeds */
+.prose-voice h1, .prose-voice h2, .prose-voice h3, .prose-voice h4 { font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+.prose-voice h1 { font-size: 1.5rem; }
+.prose-voice h2 { font-size: 1.25rem; }
+.prose-voice p { margin-bottom: 1em; }
+.prose-voice ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+.prose-voice ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 1em; }
+.prose-voice a { color: #2ecc71; text-decoration: underline; }
+.prose-voice a:hover { color: #27ae60; }
+.prose-voice img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1em 0; }
+</style>
 
 <?php require_once '../app/Views/layout/footer.php'; ?>

@@ -1,7 +1,7 @@
 <?php require_once '../app/Views/layout/header.php'; ?>
 <?php require_once '../app/Views/components/navbar.php'; ?>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-10">
+<div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-10 w-full flex-grow">
     <div class="flex flex-col md:flex-row gap-6">
         
         <!-- Sidebar -->
