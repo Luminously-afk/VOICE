@@ -41,11 +41,27 @@
             </h1>
 
             <div class="prose prose-invert prose-voice max-w-none text-gray-300 leading-relaxed mb-8">
-                <?php 
-                    $insightHtml = html_entity_decode($data['post']->insight ?? '', ENT_QUOTES);
-                    $insightHtml = preg_replace('/src="(\.\.\/)+uploads\//', 'src="' . URLROOT . '/uploads/', $insightHtml);
-                    echo $insightHtml;
-                ?>
+                <?php if($data['post']->post_type === 'album' && !empty($data['post']->image_urls)): ?>
+                    <?php if(!empty($data['post']->insight)): ?>
+                        <p class="mb-6 text-lg"><?= htmlspecialchars($data['post']->insight) ?></p>
+                    <?php endif; ?>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <?php 
+                            $images = json_decode($data['post']->image_urls, true) ?? [];
+                        ?>
+                        <?php foreach($images as $img_url): ?>
+                            <a href="<?= htmlspecialchars($img_url) ?>" target="_blank" class="block overflow-hidden rounded-xl border border-voice-border hover:border-voice-green transition-colors">
+                                <img src="<?= htmlspecialchars($img_url) ?>" alt="Album Image" class="w-full h-64 object-cover hover:scale-105 transition-transform duration-300">
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <?php 
+                        $insightHtml = html_entity_decode($data['post']->insight ?? '', ENT_QUOTES);
+                        $insightHtml = preg_replace('/src="(\.\.\/)+uploads\//', 'src="' . URLROOT . '/uploads/', $insightHtml);
+                        echo $insightHtml;
+                    ?>
+                <?php endif; ?>
             </div>
 
             <!-- Votes -->

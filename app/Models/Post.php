@@ -280,4 +280,40 @@ class Post extends Model {
             $this->db->execute();
         }
     }
+
+    public function getAlbumByEventAndUser($event_id, $user_id) {
+        $this->db->query("SELECT * FROM posts WHERE event_id = :event_id AND user_id = :user_id AND post_type = 'album'");
+        $this->db->bind(':event_id', $event_id);
+        $this->db->bind(':user_id', $user_id);
+        return $this->db->single();
+    }
+
+    public function addAlbum($data) {
+        $this->db->query("INSERT INTO posts (user_id, event_id, title, post_type, insight, image_urls, is_anonymous, status) VALUES (:user_id, :event_id, :title, 'album', :insight, :image_urls, :is_anonymous, 'Pending')");
+        $this->db->bind(':user_id', $data['user_id']); 
+        $this->db->bind(':event_id', $data['event_id']); 
+        $this->db->bind(':title', $data['title']); 
+        $this->db->bind(':insight', $data['insight']);
+        $this->db->bind(':image_urls', $data['image_urls']);
+        $this->db->bind(':is_anonymous', $data['is_anonymous']);
+        
+        if ($this->db->execute()) {
+            $this->db->query("SELECT post_id FROM posts WHERE user_id = :user_id ORDER BY post_id DESC LIMIT 1");
+            $this->db->bind(':user_id', $data['user_id']);
+            $new_post = $this->db->single();
+            $post_id = $new_post->post_id;
+
+            $this->db->query("SELECT name FROM users WHERE user_id = :user_id");
+            $this->db->bind(':user_id', $data['user_id']);
+            $user = $this->db->single();
+            
+            $notif_type = 'Post_Review_' . $post_id;
+            $this->db->query("INSERT INTO notifications (user_id, message, type) SELECT user_id, :msg, :notif_type FROM users WHERE role = 'Admin'");
+            $this->db->bind(':msg', $user->name . ' submitted an album to review.');
+            $this->db->bind(':notif_type', $notif_type);
+            $this->db->execute();
+            return true;
+        }
+        return false;
+    }
 }

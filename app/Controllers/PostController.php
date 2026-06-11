@@ -188,6 +188,77 @@ class PostController extends Controller {
         }
     }
 
+    public function storeAlbum() {
+        if (!isset($_SESSION['user_id'])) { header('Location: ' . URLROOT . '/auth/login'); exit(); }
+        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            
+            $event_id = trim($_POST['event_id']);
+            if ($event_id === 'generalized' || empty($event_id)) {
+                Flash::set('post_message', 'You must select a specific event for an album.', 'error');
+                header('Location: ' . URLROOT . '/post/index');
+                exit();
+            }
+
+            // Enforce 1 album per student per event
+            if ($this->postModel->getAlbumByEventAndUser($event_id, $_SESSION['user_id'])) {
+                Flash::set('post_message', 'You have already submitted an album for this event.', 'error');
+                header('Location: ' . URLROOT . '/post/index');
+                exit();
+            }
+
+            // Process uploaded images
+            $urls = [];
+            $spaces = new Spaces();
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            
+            if (isset($_FILES['images']) && is_array($_FILES['images']['name'])) {
+                $fileCount = count($_FILES['images']['name']);
+                if ($fileCount > 10) {
+                    Flash::set('post_message', 'Maximum of 10 pictures per album allowed.', 'error');
+                    header('Location: ' . URLROOT . '/post/index');
+                    exit();
+                }
+                
+                for ($i = 0; $i < $fileCount; $i++) {
+                    if ($_FILES['images']['error'][$i] === UPLOAD_ERR_OK) {
+                        $ext = pathinfo($_FILES['images']['name'][$i], PATHINFO_EXTENSION);
+                        if (in_array(strtolower($ext), $allowed)) {
+                            $filename = uniqid('alb_') . '.' . $ext;
+                            $url = $spaces->uploadImage($_FILES['images']['tmp_name'][$i], $filename, 'albums');
+                            if ($url) {
+                                $urls[] = $url;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (empty($urls)) {
+                Flash::set('post_message', 'You must upload at least one valid image.', 'error');
+                header('Location: ' . URLROOT . '/post/index');
+                exit();
+            }
+
+            $is_anonymous = isset($_POST['is_anonymous']) ? 1 : 0;
+
+            $data = [
+                'user_id' => $_SESSION['user_id'], 
+                'event_id' => $event_id, 
+                'title' => trim($_POST['title']),
+                'insight' => trim($_POST['description'] ?? ''),
+                'image_urls' => json_encode($urls),
+                'is_anonymous' => $is_anonymous
+            ];
+            
+            if ($this->postModel->addAlbum($data)) {
+                Flash::set('post_message', 'Album submitted for review!');
+                header('Location: ' . URLROOT . '/post/index');
+                exit();
+            }
+        }
+    }
+
     public function vote($post_id, $type) {
         if (!isset($_SESSION['user_id'])) { 
             header('Content-Type: application/json');
@@ -337,10 +408,11 @@ class PostController extends Controller {
                 $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
                 if (in_array(strtolower($ext), $allowed)) {
                     $filename = uniqid('ins_') . '.' . $ext;
-                    $dest = dirname(dirname(dirname(__FILE__))) . '/public/uploads/insights/' . $filename;
-                    if (move_uploaded_file($file['tmp_name'], $dest)) {
+                    $spaces = new Spaces();
+                    $url = $spaces->uploadImage($file['tmp_name'], $filename, 'insights');
+                    if ($url) {
                         header('Content-Type: application/json');
-                        echo json_encode(['location' => URLROOT . '/uploads/insights/' . $filename]);
+                        echo json_encode(['location' => $url]);
                         exit();
                     }
                 }

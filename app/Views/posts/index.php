@@ -8,9 +8,14 @@
         <!-- Left Sidebar -->
         <div class="w-full md:w-1/4 flex-shrink-0">
             <div class="sticky top-24">
-                <button onclick="<?= $isLoggedIn ? 'openModal()' : 'window.location.href=\''.URLROOT.'/auth/login\'' ?>" class="w-full py-3 px-4 bg-voice-green hover:bg-voice-green-dark text-voice-dark font-bold rounded-full transition-all duration-200 shadow-glow mb-6 flex items-center justify-center gap-2">
-                    <i class="fas fa-plus"></i> Share an Insight
-                </button>
+                <div class="flex gap-2 mb-6">
+                    <button onclick="<?= $isLoggedIn ? 'openModal()' : 'window.location.href=\''.URLROOT.'/auth/login\'' ?>" class="flex-1 py-3 px-4 bg-voice-green hover:bg-voice-green-dark text-voice-dark font-bold rounded-xl transition-all duration-200 shadow-glow flex items-center justify-center gap-2 text-sm">
+                        <i class="fas fa-plus"></i> Share Insight
+                    </button>
+                    <button onclick="<?= $isLoggedIn ? 'openAlbumModal()' : 'window.location.href=\''.URLROOT.'/auth/login\'' ?>" class="flex-1 py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-xl transition-all duration-200 shadow-glow flex items-center justify-center gap-2 text-sm">
+                        <i class="fas fa-images"></i> Upload Album
+                    </button>
+                </div>
                 
                 <div class="bg-voice-card border border-voice-border rounded-xl overflow-hidden shadow-lg">
                     <div class="px-4 py-3 border-b border-voice-border bg-[#1a1d21] font-bold text-gray-200">
@@ -55,8 +60,8 @@
                         <!-- Action dropdown for my posts -->
                         <?php if($isLoggedIn && $_SESSION['user_id'] == $p->user_id): ?>
                             <div class="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <a href="<?= URLROOT ?>/post/edit/<?= $p->post_id ?>" class="text-gray-400 hover:text-voice-green bg-[#1a1d21] p-2 rounded-full mr-1" title="Edit Insight"><i class="fas fa-edit"></i></a>
-                                <a href="<?= URLROOT ?>/post/delete/<?= $p->post_id ?>" class="text-gray-400 hover:text-red-400 bg-[#1a1d21] p-2 rounded-full" title="Delete Insight" onclick="return confirm('Delete this insight?')"><i class="fas fa-trash"></i></a>
+                                <a href="<?= URLROOT ?>/post/editPost/<?= $p->post_id ?>" class="text-gray-400 hover:text-voice-green bg-[#1a1d21] p-2 rounded-full mr-1" title="Edit Insight"><i class="fas fa-edit"></i></a>
+                                <a href="<?= URLROOT ?>/post/deletePost/<?= $p->post_id ?>" class="text-gray-400 hover:text-red-400 bg-[#1a1d21] p-2 rounded-full" title="Delete Insight" onclick="return confirm('Delete this insight?')"><i class="fas fa-trash"></i></a>
                             </div>
                         <?php endif; ?>
 
@@ -75,14 +80,39 @@
                             <?= htmlspecialchars(html_entity_decode($p->title ?? 'Untitled Insight', ENT_QUOTES), ENT_QUOTES) ?>
                         </a>
                         
-                        <?php if(!empty($p->insight)): ?>
-                            <div class="text-gray-300 text-sm leading-relaxed mb-4 prose-voice line-clamp-3">
-                                <?php 
-                                    $insightHtml = html_entity_decode($p->insight, ENT_QUOTES);
-                                    $insightHtml = preg_replace('/src="(\.\.\/)+uploads\//', 'src="' . URLROOT . '/uploads/', $insightHtml);
-                                    echo $insightHtml;
-                                ?>
+                        <?php if($p->post_type === 'album' && !empty($p->image_urls)): ?>
+                            <div class="mb-4">
+                                <?php if(!empty($p->insight)): ?>
+                                    <p class="text-gray-300 text-sm mb-4 line-clamp-2"><?= htmlspecialchars($p->insight) ?></p>
+                                <?php endif; ?>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                    <?php 
+                                        $images = json_decode($p->image_urls, true) ?? [];
+                                        $display_images = array_slice($images, 0, 3);
+                                        $remaining = count($images) - 3;
+                                    ?>
+                                    <?php foreach($display_images as $index => $img_url): ?>
+                                        <div class="relative aspect-square rounded-lg overflow-hidden border border-voice-border">
+                                            <img src="<?= htmlspecialchars($img_url) ?>" alt="Album Image" class="w-full h-full object-cover">
+                                            <?php if($index === 2 && $remaining > 0): ?>
+                                                <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                    <span class="text-white font-bold text-xl">+<?= $remaining ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
+                        <?php else: ?>
+                            <?php if(!empty($p->insight)): ?>
+                                <div class="text-gray-300 text-sm leading-relaxed mb-4 prose-voice line-clamp-3">
+                                    <?php 
+                                        $insightHtml = html_entity_decode($p->insight, ENT_QUOTES);
+                                        $insightHtml = preg_replace('/src="(\.\.\/)+uploads\//', 'src="' . URLROOT . '/uploads/', $insightHtml);
+                                        echo $insightHtml;
+                                    ?>
+                                </div>
+                            <?php endif; ?>
                         <?php endif; ?>
 
                         <div class="flex items-center justify-between border-t border-voice-border pt-4">
@@ -223,6 +253,64 @@
 </div>
 <!-- END: ShareInsightModal -->
 
+<!-- BEGIN: UploadAlbumModal -->
+<div id="albumModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity backdrop-blur-sm" onclick="closeAlbumModal()"></div>
+    <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <main class="relative z-10 w-full max-w-2xl bg-[#2d333b] rounded-xl shadow-2xl border border-[#444c56] overflow-hidden text-left">
+                <header class="flex items-center justify-between px-6 py-4 border-b border-[#444c56]">
+                    <h1 class="text-xl font-semibold text-white">Upload Event Documentation Album</h1>
+                    <button type="button" class="text-gray-400 hover:text-white transition-colors" onclick="closeAlbumModal()">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </header>
+                
+                <form action="<?= URLROOT ?>/post/storeAlbum" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
+                    <section>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Select Event (Required)</label>
+                        <select name="event_id" class="w-full bg-[#22272e] border border-[#444c56] text-white rounded-md py-2.5 px-4 focus:ring-1 focus:ring-[#2ecc71] focus:border-[#2ecc71]" required>
+                            <option value="">Select an Event</option>
+                            <?php if(!empty($data['events'])): foreach($data['events'] as $event): ?>
+                                <option value="<?= $event->event_id ?>"><?= htmlspecialchars($event->title) ?></option>
+                            <?php endforeach; endif; ?>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">Note: You can only upload one album per event.</p>
+                    </section>
+                    
+                    <section>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Album Title</label>
+                        <input name="title" class="w-full bg-[#22272e] border border-[#444c56] text-white rounded-md py-3 px-4 focus:ring-1 focus:ring-[#2ecc71] focus:border-[#2ecc71]" placeholder="e.g. My Dept Orientation Experience" required type="text"/>
+                    </section>
+                    
+                    <section>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Description (Optional)</label>
+                        <textarea name="description" class="w-full bg-[#22272e] border border-[#444c56] text-white p-4 h-24 rounded-md resize-none focus:ring-[#2ecc71]" placeholder="Say something about these photos..."></textarea>
+                    </section>
+
+                    <section>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Select Images (Max 10)</label>
+                        <input type="file" name="images[]" multiple accept="image/*" max="10" onchange="validateAlbumFiles(this)" class="w-full bg-[#22272e] border border-[#444c56] text-white rounded-md py-2 px-3 focus:ring-[#2ecc71]" required>
+                    </section>
+                    
+                    <footer class="flex items-center justify-between pt-4">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="is_anonymous" value="1" class="sr-only peer custom-checkbox">
+                            <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-voice-green"></div>
+                            <span class="ml-3 text-sm font-medium text-gray-300">Post Anonymously</span>
+                        </label>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="closeAlbumModal()" class="px-6 py-2.5 rounded-md font-medium text-gray-300 bg-[#444c56] hover:bg-[#545d68] transition-colors" type="button">Cancel</button>
+                            <button class="px-6 py-2.5 rounded-md font-bold text-white bg-blue-500 hover:bg-blue-600 shadow-[0_0_15px_rgba(59,130,246,0.4)] transition-all" type="submit">Upload Album</button>
+                        </div>
+                    </footer>
+                </form>
+            </main>
+        </div>
+    </div>
+</div>
+<!-- END: UploadAlbumModal -->
+
 <script>
     function openModal() {
         document.getElementById('insightModal').classList.remove('hidden');
@@ -230,6 +318,21 @@
     
     function closeModal() {
         document.getElementById('insightModal').classList.add('hidden');
+    }
+
+    function openAlbumModal() {
+        document.getElementById('albumModal').classList.remove('hidden');
+    }
+    
+    function closeAlbumModal() {
+        document.getElementById('albumModal').classList.add('hidden');
+    }
+
+    function validateAlbumFiles(input) {
+        if (input.files && input.files.length > 10) {
+            alert('You can only select a maximum of 10 images.');
+            input.value = ''; // Reset the input
+        }
     }
 
     function handleVoteClick(event, postId, type, isLoggedIn) {

@@ -66,14 +66,39 @@
                     <?= htmlspecialchars(html_entity_decode($p->title ?? 'Untitled Insight', ENT_QUOTES), ENT_QUOTES) ?>
                 </a>
                 
-                <?php if(!empty($p->insight)): ?>
-                    <div class="text-gray-300 text-sm leading-relaxed mb-4 prose-voice line-clamp-3">
-                        <?php 
-                            $insightHtml = html_entity_decode($p->insight, ENT_QUOTES);
-                            $insightHtml = preg_replace('/src="(\.\.\/)+uploads\//', 'src="' . URLROOT . '/uploads/', $insightHtml);
-                            echo $insightHtml;
-                        ?>
+                <?php if($p->post_type === 'album' && !empty($p->image_urls)): ?>
+                    <div class="mb-4">
+                        <?php if(!empty($p->insight)): ?>
+                            <p class="text-gray-300 text-sm mb-4 line-clamp-2"><?= htmlspecialchars($p->insight) ?></p>
+                        <?php endif; ?>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            <?php 
+                                $images = json_decode($p->image_urls, true) ?? [];
+                                $display_images = array_slice($images, 0, 3);
+                                $remaining = count($images) - 3;
+                            ?>
+                            <?php foreach($display_images as $index => $img_url): ?>
+                                <div class="relative aspect-square rounded-lg overflow-hidden border border-voice-border">
+                                    <img src="<?= htmlspecialchars($img_url) ?>" alt="Album Image" class="w-full h-full object-cover">
+                                    <?php if($index === 2 && $remaining > 0): ?>
+                                        <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                            <span class="text-white font-bold text-xl">+<?= $remaining ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
+                <?php else: ?>
+                    <?php if(!empty($p->insight)): ?>
+                        <div class="text-gray-300 text-sm leading-relaxed mb-4 prose-voice line-clamp-3">
+                            <?php 
+                                $insightHtml = html_entity_decode($p->insight, ENT_QUOTES);
+                                $insightHtml = preg_replace('/src="(\.\.\/)+uploads\//', 'src="' . URLROOT . '/uploads/', $insightHtml);
+                                echo $insightHtml;
+                            ?>
+                        </div>
+                    <?php endif; ?>
                 <?php endif; ?>
 
                 <div class="flex items-center justify-between border-t border-voice-border pt-4">

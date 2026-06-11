@@ -169,10 +169,11 @@ class AdminController extends Controller {
                 $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
                 if (in_array(strtolower($ext), $allowed)) {
                     $filename = uniqid('evt_') . '.' . $ext;
-                    $dest = dirname(dirname(dirname(__FILE__))) . '/public/uploads/events/' . $filename;
-                    if (move_uploaded_file($file['tmp_name'], $dest)) {
+                    $spaces = new Spaces();
+                    $url = $spaces->uploadImage($file['tmp_name'], $filename, 'events');
+                    if ($url) {
                         header('Content-Type: application/json');
-                        echo json_encode(['location' => URLROOT . '/uploads/events/' . $filename]);
+                        echo json_encode(['location' => $url]);
                         exit();
                     }
                 }
